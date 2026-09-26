@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   dongle.c                                          +:+      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dilferre <dilferre@student.42sp.org.br>  +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/25 10:00:00 by dilferre  #+#    #+#             */
+/*   Updated: 2026/09/25 10:00:00 by dilferre  ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 void	init_dongle(t_dongle *dongle, int id, t_scheduler type)
@@ -58,7 +70,8 @@ void	assign_dongles(t_simulation *sim)
 		if (sim->num_coders == 1)
 			sim->coders[i].right_dongle = &sim->dongles[i];
 		else
-			sim->coders[i].right_dongle = &sim->dongles[(i + 1) % sim->num_coders];
+			sim->coders[i].right_dongle = &sim->dongles[(i + 1)
+				% sim->num_coders];
 		i++;
 	}
 }

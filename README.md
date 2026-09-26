@@ -384,7 +384,7 @@ pthread_mutex_unlock(&sim->log_mutex);
 │  Coder 1    │ ─────────────────────────► │  Dongle 0   │
 │  (thread)   │  lock mutex, check avail,  │  (mutex +   │
 └─────────────┘  enqueue request, wait     │   condvar)  │
-       ▲                                    └──────┬──────┘
+       ▲                                   └──────┬──────┘
        │                                           │
        │ release_dongles()                         │ signal/broadcast
        │  set available=true                       │
@@ -393,9 +393,9 @@ pthread_mutex_unlock(&sim->log_mutex);
        └───────────────────────────────────────────┘
 
 ┌─────────────┐     monitor_routine()       ┌─────────────┐
-│  Monitor    │ ─────────────────────────► │  Simulation │
-│  (thread)   │  check deadlines every 1ms │  (stop flag)│
-└─────────────┘  log burnout, set flag    └─────────────┘
+│  Monitor    │ ─────────────────────────►  │  Simulation │
+│  (thread)   │  check deadlines every 1ms  │  (stop flag)│
+└─────────────┘  log burnout, set flag      └─────────────┘
        ▲                                           │
        │ broadcast_all_dongles()                   │
        │  pthread_cond_broadcast()                 │

@@ -608,29 +608,29 @@ typedef struct s_simulation {
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        SIMULATION (main thread)                     │
-│  init_simulation() → start_coders() → start_monitor()              │
+│  init_simulation() → start_coders() → start_monitor()               │
 │                           │                    │                    │
 │                           ▼                    ▼                    │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ CODER THREADS (N threads)              MONITOR THREAD       │   │
-│  │ coder_routine()                          monitor_routine()  │   │
-│  │                                           │                 │   │
-│  │ acquire_dongles() ──────────────────────► │ (checks deadlines)│
-│  │   wait_for_dongle()                       │                 │   │
-│  │     lock dongle mutex                     │                 │   │
-│  │     enqueue request                       │                 │   │
-│  │     cond_wait / timed_wait                │                 │   │
-│  │     acquire dongle                        │                 │   │
-│  │ release_dongles()                         │                 │   │
-│  │   set available=true                      │                 │   │
-│  │   set cooldown_end                        │                 │   │
-│  │   cond_signal                             │                 │   │
-│  │                                           │                 │   │
-│  │ log_state() ◄─────────────────────────────┤ (logs burnout)  │
-│  │   lock log_mutex                          │                 │   │
-│  │   printf                                  │                 │   │
-│  │   unlock log_mutex                        │                 │   │
-│  └─────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │ CODER THREADS (N threads)              MONITOR THREAD       │    │
+│  │ coder_routine()                          monitor_routine()  │    │
+│  │                                           │                 │    │
+│  │ acquire_dongles() ──────────────────────► │ (checks deadlines)   │
+│  │   wait_for_dongle()                       │                 │    │
+│  │     lock dongle mutex                     │                 │    │
+│  │     enqueue request                       │                 │    │
+│  │     cond_wait / timed_wait                │                 │    │
+│  │     acquire dongle                        │                 │    │
+│  │ release_dongles()                         │                 │    │
+│  │   set available=true                      │                 │    │
+│  │   set cooldown_end                        │                 │    │
+│  │   cond_signal                             │                 │    │
+│  │                                           │                 │    │
+│  │ log_state() ◄─────────────────────────────┤ (logs burnout)  │    |
+│  │   lock log_mutex                          │                 │    │
+│  │   printf                                  │                 │    │
+│  │   unlock log_mutex                        │                 │    │
+│  └─────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

@@ -1,12 +1,16 @@
-#include "codexion.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   coder_utils.c                                     +:+      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dilferre <dilferre@student.42sp.org.br>  +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/25 10:00:00 by dilferre  #+#    #+#             */
+/*   Updated: 2026/09/25 10:00:00 by dilferre  ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-static void	acquire_first_dongle(t_coder *coder, t_dongle *first, t_dongle *second)
-{
-	wait_for_dongle(first, coder);
-	log_state(coder->sim, coder->id, STATE_TAKEN_DONGLE);
-	wait_for_dongle(second, coder);
-	log_state(coder->sim, coder->id, STATE_TAKEN_DONGLE);
-}
+#include "codexion.h"
 
 void	acquire_dongles(t_coder *coder)
 {
@@ -17,9 +21,19 @@ void	acquire_dongles(t_coder *coder)
 		return ;
 	}
 	if (coder->left_dongle->id < coder->right_dongle->id)
-		acquire_first_dongle(coder, coder->left_dongle, coder->right_dongle);
+	{
+		wait_for_dongle(coder->left_dongle, coder);
+		log_state(coder->sim, coder->id, STATE_TAKEN_DONGLE);
+		wait_for_dongle(coder->right_dongle, coder);
+		log_state(coder->sim, coder->id, STATE_TAKEN_DONGLE);
+	}
 	else
-		acquire_first_dongle(coder, coder->right_dongle, coder->left_dongle);
+	{
+		wait_for_dongle(coder->right_dongle, coder);
+		log_state(coder->sim, coder->id, STATE_TAKEN_DONGLE);
+		wait_for_dongle(coder->left_dongle, coder);
+		log_state(coder->sim, coder->id, STATE_TAKEN_DONGLE);
+	}
 }
 
 void	release_dongles(t_coder *coder)
@@ -58,14 +72,20 @@ bool	try_acquire_dongle(t_dongle *dongle, t_coder *coder)
 	return (false);
 }
 
+static void	wait_dongle_signal(t_dongle *dongle)
+{
+	if (!dongle->available)
+		pthread_cond_wait(&dongle->cond, &dongle->mutex);
+	else
+		wait_for_cooldown(dongle);
+}
+
 void	wait_for_dongle(t_dongle *dongle, t_coder *coder)
 {
 	t_request	*req;
-	long		deadline;
 
 	pthread_mutex_lock(&dongle->mutex);
-	deadline = coder->deadline;
-	req = create_request(coder->id, deadline, get_current_time_ms());
+	req = create_request(coder->id, coder->deadline, get_current_time_ms());
 	enqueue_request(dongle->heap, req);
 	while (1)
 	{
@@ -73,7 +93,7 @@ void	wait_for_dongle(t_dongle *dongle, t_coder *coder)
 		if (coder->sim->stop_simulation)
 		{
 			pthread_mutex_unlock(&coder->sim->stop_mutex);
-			dequeue_request(dongle->heap);
+			free(dequeue_request(dongle->heap));
 			pthread_mutex_unlock(&dongle->mutex);
 			return ;
 		}
@@ -81,11 +101,8 @@ void	wait_for_dongle(t_dongle *dongle, t_coder *coder)
 		if (try_acquire_dongle(dongle, coder)
 			&& is_request_at_front(dongle->heap, coder->id))
 			break ;
-		if (!dongle->available)
-			pthread_cond_wait(&dongle->cond, &dongle->mutex);
-		else
-			wait_for_cooldown(dongle);
+		wait_dongle_signal(dongle);
 	}
-	dequeue_request(dongle->heap);
+	free(dequeue_request(dongle->heap));
 	pthread_mutex_unlock(&dongle->mutex);
 }
